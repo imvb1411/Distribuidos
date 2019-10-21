@@ -1,0 +1,288 @@
+package com.project.artisan.clientopenhab.ui.panel;
+
+import android.app.AlertDialog;
+import android.content.Context;
+import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.ImageButton;
+import android.widget.SeekBar;
+import android.widget.Spinner;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
+import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.core.widget.TextViewCompat;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
+import com.google.android.material.textfield.TextInputLayout;
+import com.project.artisan.clientopenhab.Entity.IconAdapter;
+import com.project.artisan.clientopenhab.Entity.IconEntity;
+import com.project.artisan.clientopenhab.Entity.ItemEntity;
+import com.project.artisan.clientopenhab.R;
+import com.project.artisan.clientopenhab.Services.ItemService;
+import com.project.artisan.clientopenhab.Services.VolleyCallBack;
+import com.project.artisan.clientopenhab.Model.IconModel;
+
+public class PanelFragment extends Fragment {
+
+    private int rows=3;
+    private final int COLS=2;
+    private ItemService itemService;
+    private AlertDialog dialogAddItem;
+    private AlertDialog dialogSetValueItem;
+    private Spinner sItems;
+    private TextInputLayout tilUnit;
+    private Spinner sIcons;
+    private Button addItem;
+    private Button setValue;
+    private String typeFormat="Type : %s";
+    private TextView value;
+    private SeekBar seekBar;
+    private View[][] panelItems;
+
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
+        PanelViewModel panelViewModel = ViewModelProviders.of(this).get(PanelViewModel.class);
+        return inflater.inflate(R.layout.fragment_panel, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull final View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        ImageButton tableSettings=view.findViewById(R.id.bEditTable);
+        ToggleButton mode=view.findViewById(R.id.tbMode);
+        itemService=new ItemService(view.getContext());
+        panelItems=new View[rows][COLS];
+        initAddItemDialog(view.getContext());
+        initSetValueItemDialog(view.getContext());
+        tableSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                applySettings();
+            }
+        });
+        mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                modeRun(b);
+            }
+        });
+        TableLayout tableLayout=view.findViewById(R.id.table);
+        tableLayout.removeAllViews();
+        populateButtons();
+    }
+
+    private void initAddItemDialog(final Context context){
+        final AlertDialog.Builder builderDialogAddItem=new AlertDialog.Builder(context);
+        View viewDialog=getLayoutInflater().inflate(R.layout.dialog_additem, null);
+        builderDialogAddItem.setView(viewDialog);
+        sItems=viewDialog.findViewById(R.id.sItems);
+        sIcons=viewDialog.findViewById(R.id.sIcons);
+        addItem=viewDialog.findViewById(R.id.bAddItem);
+        final TextView tvType=viewDialog.findViewById(R.id.tvType);
+        tilUnit=viewDialog.findViewById(R.id.tilUnit);
+        itemService.getItems(new VolleyCallBack() {
+            @Override
+            public void onSuccess() {
+                sItems.setAdapter(new ArrayAdapter<>(context,android.R.layout.simple_spinner_dropdown_item,itemService.getList()));
+                sItems.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        ItemEntity item=(ItemEntity) sItems.getSelectedItem();
+                        tvType.setText(String.format(typeFormat, item.getType()));
+                        tilUnit.setVisibility(View.INVISIBLE);
+                        if(item.getType().equals("Switch")){
+                            tilUnit.setVisibility(View.INVISIBLE);
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+                sIcons.setAdapter(new IconAdapter(context, IconModel.getItemIcons()));
+                dialogAddItem=builderDialogAddItem.create();
+            }
+
+            @Override
+            public void onError() {
+
+            }
+        });
+    }
+
+    private void initSetValueItemDialog(final Context context){
+        final AlertDialog.Builder builderDialogAddItem=new AlertDialog.Builder(context);
+        View viewDialog=getLayoutInflater().inflate(R.layout.setvalueitem, null);
+        builderDialogAddItem.setView(viewDialog);
+        value=viewDialog.findViewById(R.id.tvValue);
+        seekBar=viewDialog.findViewById(R.id.seekBar);
+        setValue=viewDialog.findViewById(R.id.bSetValue);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int progress;
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                progress=i;
+                value.setText("Max Temp."+progress +" ºC");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                value.setText("Max Temp."+progress+" ºC");
+            }
+        });
+        dialogSetValueItem=builderDialogAddItem.create();
+    }
+
+
+    private void populateButtons(){
+        final TableLayout tableLayout=this.getView().findViewById(R.id.table);
+        tableLayout.removeAllViews();
+        for (int i=0;i<rows;i++){
+            TableRow row=new TableRow(getContext());
+            row.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,50,1.0f));
+            tableLayout.addView(row);
+            for (int j=0;j<COLS;j++){
+                final int rowT=i;
+                final int colT=j;
+                final View itemPanel=getLayoutInflater().inflate(R.layout.panel_item,null);
+                itemPanel.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,TableRow.LayoutParams.MATCH_PARENT,1.0f));
+                ImageButton edit=itemPanel.findViewById(R.id.ibEdit);
+                edit.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Toast.makeText(getContext(), "button:"+rowT+","+colT, Toast.LENGTH_SHORT).show();
+                        addItem.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                final View itemSelected=panelItems[rowT][colT];
+                                final ImageButton itemLogo=itemSelected.findViewById(R.id.ibLogoItem);
+                                TextView label=itemSelected.findViewById(R.id.tvLabel);
+                                final TextView state=itemSelected.findViewById(R.id.tvState);
+                                IconEntity currentIcon=(IconEntity)sIcons.getSelectedItem();
+                                itemLogo.setImageResource(currentIcon.getIconInt());
+                                final ItemEntity item=(ItemEntity) sItems.getSelectedItem();
+                                label.setText(item.getLabel());
+                                state.setText(item.getState().concat(tilUnit.getEditText().getText().toString()));
+                                itemService.sincronize(itemSelected);
+                                if(item.getType().equals("Switch")){
+                                    itemLogo.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            itemService.sendcommand(itemSelected, item, new VolleyCallBack() {
+                                                @Override
+                                                public void onSuccess() {
+                                                    if(state.getText().toString().equals("ON")){
+                                                        itemLogo.setImageResource(R.drawable.lightoff);
+                                                    }else{
+                                                        itemLogo.setImageResource(R.drawable.lighton);
+                                                    }
+                                                }
+                                                @Override
+                                                public void onError() {
+
+                                                }
+                                            });
+                                        }
+                                    });
+                                }else if(item.getType().equals("Number")){
+                                    itemLogo.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            dialogSetValueItem.show();
+                                        }
+                                    });
+                                }if(item.getType().equals("Number")) {
+                                    setValue.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            item.setState(seekBar.getProgress() + "");
+                                            itemService.sendcommand(itemSelected, item, new VolleyCallBack() {
+                                                @Override
+                                                public void onSuccess() {
+                                                    state.setText(seekBar.getProgress() + "");
+                                                    dialogSetValueItem.dismiss();
+                                                }
+
+                                                @Override
+                                                public void onError() {
+                                                    dialogSetValueItem.dismiss();
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                                TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(label,28,29,2, TypedValue.COMPLEX_UNIT_SP);
+                                TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(state,28,29,2,TypedValue.COMPLEX_UNIT_SP);
+                                itemLogo.setVisibility(View.VISIBLE);
+                                label.setVisibility(View.VISIBLE);
+                                state.setVisibility(View.VISIBLE);
+                            }
+                        });
+                        dialogAddItem.show();
+                    }
+                });
+                ImageButton itemLogo=itemPanel.findViewById(R.id.ibLogoItem);
+                TextView label=itemPanel.findViewById(R.id.tvLabel);
+                TextView state=itemPanel.findViewById(R.id.tvState);
+                itemLogo.setVisibility(View.INVISIBLE);
+                label.setVisibility(View.INVISIBLE);
+                state.setVisibility(View.INVISIBLE);
+                this.panelItems[i][j]=itemPanel;
+                row.addView(itemPanel);
+            }
+        }
+    }
+
+    private void modeRun(boolean b){
+        for(int i=0;i<rows;i++){
+            for (int j=0;j<COLS;j++){
+                View item=panelItems[i][j];
+                ImageButton edit=item.findViewById(R.id.ibEdit);
+                edit.setVisibility(View.VISIBLE);
+                if(b){
+                    edit.setVisibility(View.GONE);
+                }
+
+            }
+        }
+    }
+
+    private void applySettings(){
+        final AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+        View dView=getLayoutInflater().inflate(R.layout.dialog_tablesettings,null);
+        final TextInputLayout rowsE=dView.findViewById(R.id.tRow);
+        builder.setView(dView);
+        final AlertDialog dialog=builder.create();
+        Button save=dView.findViewById(R.id.bSaveTableSettings);
+        save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!rowsE.getEditText().getText().toString().isEmpty()) {
+                    rows = Integer.valueOf(rowsE.getEditText().getText().toString());
+                    panelItems = new View[rows][COLS];
+                    populateButtons();
+                }
+                Toast.makeText(getContext(), "Error: Num rows less than 0", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+}

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Temperatura Max."
+        android:textSize="24sp" />
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        style="@style/Widget.AppCompat.SeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp" />
+
+    <TextView
+        android:id="@+id/tvValue"
+        android:layout_width="match_parent"
+        android:layout_height="29dp"
+        android:gravity="center"
+        android:text="Temp MAX"
+        android:textAlignment="center" />
+
+    <Button
+        android:id="@+id/bSetValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ok" />
+</LinearLayout>
