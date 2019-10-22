@@ -25,13 +25,17 @@ import androidx.core.widget.TextViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 import com.google.android.material.textfield.TextInputLayout;
+import com.project.artisan.clientopenhab.Entity.ControlItemsEntity;
 import com.project.artisan.clientopenhab.Entity.IconAdapter;
 import com.project.artisan.clientopenhab.Entity.IconEntity;
 import com.project.artisan.clientopenhab.Entity.ItemEntity;
+import com.project.artisan.clientopenhab.Model.ControlItemsModel;
 import com.project.artisan.clientopenhab.R;
 import com.project.artisan.clientopenhab.Services.ItemService;
 import com.project.artisan.clientopenhab.Services.VolleyCallBack;
 import com.project.artisan.clientopenhab.Model.IconModel;
+
+import java.util.ArrayList;
 
 public class PanelFragment extends Fragment {
 
@@ -40,6 +44,7 @@ public class PanelFragment extends Fragment {
     private ItemService itemService;
     private AlertDialog dialogAddItem;
     private AlertDialog dialogSetValueItem;
+    private AlertDialog dialogControlFoco;
     private Spinner sItems;
     private TextInputLayout tilUnit;
     private Spinner sIcons;
@@ -49,6 +54,7 @@ public class PanelFragment extends Fragment {
     private TextView value;
     private SeekBar seekBar;
     private View[][] panelItems;
+    private View[][] controlItems;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -63,8 +69,10 @@ public class PanelFragment extends Fragment {
         ToggleButton mode=view.findViewById(R.id.tbMode);
         itemService=new ItemService(view.getContext());
         panelItems=new View[rows][COLS];
+        controlItems=new View[4][4];
         initAddItemDialog(view.getContext());
         initSetValueItemDialog(view.getContext());
+        //initDialogControlFoco(view.getContext());
         tableSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -150,6 +158,57 @@ public class PanelFragment extends Fragment {
         dialogSetValueItem=builderDialogAddItem.create();
     }
 
+    private void initDialogControlFoco(final Context context, final View itemPanel, final ItemEntity item){
+        final AlertDialog.Builder builderDialogControlFoco=new AlertDialog.Builder(context);
+        View viewDialog=getLayoutInflater().inflate(R.layout.light_item, null);
+        final TableLayout tableLayout=viewDialog.findViewById(R.id.tlControlFoco);
+        tableLayout.removeAllViews();
+        int index=0;
+        final ArrayList<ControlItemsEntity> list= ControlItemsModel.getList();
+        for (int i=0;i<4;i++) {
+            TableRow row = new TableRow(getContext());
+            row.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, 20, 1.0f));
+            tableLayout.addView(row);
+            for (int j = 0; j < 4; j++) {
+                final int rowT = i;
+                final int colT = j;
+                final TextView textView=new TextView(context);
+                textView.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,TableRow.LayoutParams.MATCH_PARENT,1.0f));
+                if(index<list.size()) {
+                    textView.setText(list.get(index).getValue());
+                    textView.setBackgroundColor(list.get(index).getBackground());
+                    final int finalIndex = index;
+                    final ItemEntity aux=new ItemEntity();
+                    aux.setName(item.getName());
+                    aux.setType(item.getType());
+                    aux.setCategory(item.getCategory());
+                    aux.setState(list.get(index).getValue());
+                    textView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            itemService.sendcommand(itemPanel, aux, new VolleyCallBack() {
+                                @Override
+                                public void onSuccess() {
+
+                                }
+
+                                @Override
+                                public void onError() {
+
+                                }
+                            });
+                        }
+                    });
+                }
+                index++;
+                this.controlItems[i][j]=textView;
+                row.addView(textView);
+            }
+            index++;
+        }
+        builderDialogControlFoco.setView(viewDialog);
+        dialogControlFoco=builderDialogControlFoco.create();
+    }
 
     private void populateButtons(){
         final TableLayout tableLayout=this.getView().findViewById(R.id.table);
@@ -181,53 +240,92 @@ public class PanelFragment extends Fragment {
                                 label.setText(item.getLabel());
                                 state.setText(item.getState().concat(tilUnit.getEditText().getText().toString()));
                                 itemService.sincronize(itemSelected);
-                                if(item.getType().equals("Switch")){
-                                    itemLogo.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            itemService.sendcommand(itemSelected, item, new VolleyCallBack() {
-                                                @Override
-                                                public void onSuccess() {
-                                                    if(state.getText().toString().equals("ON")){
-                                                        itemLogo.setImageResource(R.drawable.lightoff);
-                                                    }else{
-                                                        itemLogo.setImageResource(R.drawable.lighton);
+                                switch (item.getType()){
+                                    case "Switch":
+                                        itemLogo.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                itemService.sendcommand(itemSelected, item, new VolleyCallBack() {
+                                                    @Override
+                                                    public void onSuccess() {
+                                                        if(state.getText().toString().equals("ON")){
+                                                            itemLogo.setImageResource(R.drawable.lightoff);
+                                                        }else{
+                                                            itemLogo.setImageResource(R.drawable.lighton);
+                                                        }
                                                     }
-                                                }
-                                                @Override
-                                                public void onError() {
+                                                    @Override
+                                                    public void onError() {
 
+                                                    }
+                                                });
+                                            }
+                                        });
+                                        break;
+                                    case "Number":
+                                        itemLogo.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                dialogSetValueItem.show();
+                                            }
+                                        });
+                                        setValue.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                item.setState(seekBar.getProgress() + "");
+                                                itemService.sendcommand(itemSelected, item, new VolleyCallBack() {
+                                                    @Override
+                                                    public void onSuccess() {
+                                                        state.setText(seekBar.getProgress() + "");
+                                                        dialogSetValueItem.dismiss();
+                                                    }
+
+                                                    @Override
+                                                    public void onError() {
+                                                        dialogSetValueItem.dismiss();
+                                                    }
+                                                });
+                                            }
+                                        });
+                                        break;
+                                    case "String":
+                                        if(item.getCategory().equals("Color")) {
+                                            itemLogo.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View view) {
+                                                    initDialogControlFoco(getContext(),itemSelected,item);
+                                                    dialogControlFoco.show();
                                                 }
                                             });
                                         }
-                                    });
-                                }else if(item.getType().equals("Number")){
-                                    itemLogo.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            dialogSetValueItem.show();
-                                        }
-                                    });
-                                }if(item.getType().equals("Number")) {
-                                    setValue.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            item.setState(seekBar.getProgress() + "");
-                                            itemService.sendcommand(itemSelected, item, new VolleyCallBack() {
-                                                @Override
-                                                public void onSuccess() {
-                                                    state.setText(seekBar.getProgress() + "");
-                                                    dialogSetValueItem.dismiss();
-                                                }
-
-                                                @Override
-                                                public void onError() {
-                                                    dialogSetValueItem.dismiss();
-                                                }
-                                            });
-                                        }
-                                    });
+                                        break;
+                                    default:
+                                        break;
                                 }
+//                                if(item.getType().equals("Switch")){
+//
+//                                }else if(item.getType().equals("Number")){
+//
+//                                }if(item.getType().equals("Number")) {
+//                                    setValue.setOnClickListener(new View.OnClickListener() {
+//                                        @Override
+//                                        public void onClick(View view) {
+//                                            item.setState(seekBar.getProgress() + "");
+//                                            itemService.sendcommand(itemSelected, item, new VolleyCallBack() {
+//                                                @Override
+//                                                public void onSuccess() {
+//                                                    state.setText(seekBar.getProgress() + "");
+//                                                    dialogSetValueItem.dismiss();
+//                                                }
+//
+//                                                @Override
+//                                                public void onError() {
+//                                                    dialogSetValueItem.dismiss();
+//                                                }
+//                                            });
+//                                        }
+//                                    });
+//                                }
                                 TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(label,28,29,2, TypedValue.COMPLEX_UNIT_SP);
                                 TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(state,28,29,2,TypedValue.COMPLEX_UNIT_SP);
                                 itemLogo.setVisibility(View.VISIBLE);

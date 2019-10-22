@@ -174,7 +174,7 @@ public class ItemService {
         final TextView state=item.findViewById(R.id.tvState);
         String jsonMimeType = "text/plain";
         MediaType jsonContentType = MediaType.parse(jsonMimeType);
-        String jsonString;
+        String jsonString="";
         switch (itemEntity.getType()){
             case "Switch":
                 jsonString = "ON";
@@ -184,6 +184,11 @@ public class ItemService {
                 break;
             case "Number":
                 jsonString=itemEntity.getState();
+                break;
+            case "String":
+                if(itemEntity.getCategory().equals("Color")){
+                    jsonString=itemEntity.getState();
+                }
                 break;
                 default:
                     jsonString="";

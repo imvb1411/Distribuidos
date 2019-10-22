@@ -54,28 +54,28 @@ public class LoginActivity extends AppCompatActivity {
         String userName=tilUsername.getEditText().getText().toString();
         String password=tilPassword.getEditText().getText().toString();
         final ItemService service=new ItemService(LoginActivity.this);
-//        Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
-//        loading.setVisibility(View.INVISIBLE);
-//        LoginActivity.this.startActivity(myIntent);
-        service.login(LoginActivity.this, new VolleyCallBack() {
-            @Override
-            public void onSuccess() {
-                if(service.getList().size()>0) {
-                    Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
-                    loading.setVisibility(View.INVISIBLE);
-                    LoginActivity.this.startActivity(myIntent);
-                }else{
-                    Toast.makeText(LoginActivity.this, "Usuario o contraseña incorrectos.", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onError() {
-                Toast.makeText(LoginActivity.this, "Usuario o contraseña incorrectos.", Toast.LENGTH_SHORT).show();
-                loading.setVisibility(View.INVISIBLE);
-                tilUsername.getEditText().setText("");
-                tilPassword.getEditText().setText("");
-            }
-        },userName.trim(),password);
+        Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
+        loading.setVisibility(View.INVISIBLE);
+        LoginActivity.this.startActivity(myIntent);
+//        service.login(LoginActivity.this, new VolleyCallBack() {
+//            @Override
+//            public void onSuccess() {
+//                if(service.getList().size()>0) {
+//                    Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
+//                    loading.setVisibility(View.INVISIBLE);
+//                    LoginActivity.this.startActivity(myIntent);
+//                }else{
+//                    Toast.makeText(LoginActivity.this, "Usuario o contraseña incorrectos.", Toast.LENGTH_SHORT).show();
+//                }
+//            }
+//
+//            @Override
+//            public void onError() {
+//                Toast.makeText(LoginActivity.this, "Usuario o contraseña incorrectos.", Toast.LENGTH_SHORT).show();
+//                loading.setVisibility(View.INVISIBLE);
+//                tilUsername.getEditText().setText("");
+//                tilPassword.getEditText().setText("");
+//            }
+//        },userName.trim(),password);
     }
 }

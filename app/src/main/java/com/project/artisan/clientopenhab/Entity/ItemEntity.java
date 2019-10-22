@@ -7,12 +7,14 @@ public class ItemEntity {
     String label;
     String name;
     String type;
+    String category;
 
-    public ItemEntity(String state, String label, String name,String type) {
+    public ItemEntity(String state, String label, String name,String type,String category) {
         this.state = state;
         this.label = label;
         this.name = name;
         this.type=type;
+        this.category=category;
     }
 
     public ItemEntity() {
@@ -50,6 +52,15 @@ public class ItemEntity {
     public void setType(String type) {
         this.type = type;
     }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
     @NonNull
     @Override
     public String toString() {
