@@ -186,7 +186,7 @@ public class ItemService {
                 jsonString=itemEntity.getState();
                 break;
             case "String":
-                if(itemEntity.getCategory().equals("Color")){
+                if(itemEntity.getCategory().equals("Color") || itemEntity.getCategory().equals("TV")){
                     jsonString=itemEntity.getState();
                 }
                 break;

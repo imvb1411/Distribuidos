@@ -45,6 +45,7 @@ public class PanelFragment extends Fragment {
     private AlertDialog dialogAddItem;
     private AlertDialog dialogSetValueItem;
     private AlertDialog dialogControlFoco;
+    private AlertDialog dialogTvControl;
     private Spinner sItems;
     private TextInputLayout tilUnit;
     private Spinner sIcons;
@@ -69,7 +70,7 @@ public class PanelFragment extends Fragment {
         ToggleButton mode=view.findViewById(R.id.tbMode);
         itemService=new ItemService(view.getContext());
         panelItems=new View[rows][COLS];
-        controlItems=new View[4][4];
+        controlItems=new View[4][5];
         initAddItemDialog(view.getContext());
         initSetValueItemDialog(view.getContext());
         //initDialogControlFoco(view.getContext());
@@ -161,6 +162,74 @@ public class PanelFragment extends Fragment {
     private void initDialogControlFoco(final Context context, final View itemPanel, final ItemEntity item){
         final AlertDialog.Builder builderDialogControlFoco=new AlertDialog.Builder(context);
         View viewDialog=getLayoutInflater().inflate(R.layout.light_item, null);
+        final ToggleButton powerFoco=viewDialog.findViewById(R.id.tbPowerLight);
+
+        powerFoco.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                final ItemEntity aux=new ItemEntity();
+                aux.setName(item.getName());
+                aux.setType(item.getType());
+                aux.setCategory(item.getCategory());
+                if(b){
+                    aux.setState("0xF7C03F");
+                }else{
+                    aux.setState("0xF740BF");
+                }
+                itemService.sendcommand(itemPanel, aux, new VolleyCallBack() {
+                    @Override
+                    public void onSuccess() {
+                    }
+                    @Override
+                    public void onError() {
+                    }
+                });
+            }
+        });
+        Button moreBright=viewDialog.findViewById(R.id.bSubirBrillo);
+        moreBright.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final ItemEntity aux=new ItemEntity();
+                aux.setName(item.getName());
+                aux.setType(item.getType());
+                aux.setCategory(item.getCategory());
+                aux.setState("0xF700FF");
+                itemService.sendcommand(itemPanel, aux, new VolleyCallBack() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+                });
+            }
+        });
+        Button lessBright=viewDialog.findViewById(R.id.bBajarBrillo);
+        lessBright.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final ItemEntity aux=new ItemEntity();
+                aux.setName(item.getName());
+                aux.setType(item.getType());
+                aux.setCategory(item.getCategory());
+                aux.setState("0xF7807F");
+                itemService.sendcommand(itemPanel, aux, new VolleyCallBack() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+                });
+            }
+        });
         final TableLayout tableLayout=viewDialog.findViewById(R.id.tlControlFoco);
         tableLayout.removeAllViews();
         int index=0;
@@ -169,13 +238,13 @@ public class PanelFragment extends Fragment {
             TableRow row = new TableRow(getContext());
             row.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, 20, 1.0f));
             tableLayout.addView(row);
-            for (int j = 0; j < 4; j++) {
+            for (int j = 0; j < 5; j++) {
                 final int rowT = i;
                 final int colT = j;
                 final TextView textView=new TextView(context);
-                textView.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,TableRow.LayoutParams.MATCH_PARENT,1.0f));
+                textView.setLayoutParams(new TableRow.LayoutParams(20,TableRow.LayoutParams.MATCH_PARENT,1.0f));
                 if(index<list.size()) {
-                    textView.setText(list.get(index).getValue());
+                    textView.setText(list.get(index).getName());
                     textView.setBackgroundColor(list.get(index).getBackground());
                     final int finalIndex = index;
                     final ItemEntity aux=new ItemEntity();
@@ -204,10 +273,148 @@ public class PanelFragment extends Fragment {
                 this.controlItems[i][j]=textView;
                 row.addView(textView);
             }
-            index++;
         }
         builderDialogControlFoco.setView(viewDialog);
         dialogControlFoco=builderDialogControlFoco.create();
+    }
+
+    private void initDialogTvControl(final Context context, final View itemPanel, final ItemEntity item){
+        final AlertDialog.Builder builderDialogAddItem=new AlertDialog.Builder(context);
+        View viewDialog=getLayoutInflater().inflate(R.layout.tv_item, null);
+        builderDialogAddItem.setView(viewDialog);
+        ImageButton powerTv=viewDialog.findViewById(R.id.ibPowerTv);
+        Button channelM=viewDialog.findViewById(R.id.bTvChM);
+        Button channelm=viewDialog.findViewById(R.id.bTvChm);
+        Button volumeM=viewDialog.findViewById(R.id.bTvVM);
+        Button volumem=viewDialog.findViewById(R.id.bTvVm);
+        Button video=viewDialog.findViewById(R.id.bTvVideo);
+        powerTv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final ItemEntity aux=new ItemEntity();
+                aux.setName(item.getName());
+                aux.setType(item.getType());
+                aux.setCategory(item.getCategory());
+                aux.setState("0xBD807F");
+                itemService.sendcommand(itemPanel, aux, new VolleyCallBack() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+                });
+            }
+        });
+        channelM.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final ItemEntity aux=new ItemEntity();
+                aux.setName(item.getName());
+                aux.setType(item.getType());
+                aux.setCategory(item.getCategory());
+                aux.setState("0xBDD02F");
+                itemService.sendcommand(itemPanel, aux, new VolleyCallBack() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+                });
+            }
+        });
+        channelm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final ItemEntity aux=new ItemEntity();
+                aux.setName(item.getName());
+                aux.setType(item.getType());
+                aux.setCategory(item.getCategory());
+                aux.setState("0xBDF00F");
+                itemService.sendcommand(itemPanel, aux, new VolleyCallBack() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+                });
+            }
+        });
+        volumeM.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final ItemEntity aux=new ItemEntity();
+                aux.setName(item.getName());
+                aux.setType(item.getType());
+                aux.setCategory(item.getCategory());
+                aux.setState("0xBD52AD");
+                itemService.sendcommand(itemPanel, aux, new VolleyCallBack() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+                });
+            }
+        });
+        volumem.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final ItemEntity aux=new ItemEntity();
+                aux.setName(item.getName());
+                aux.setType(item.getType());
+                aux.setCategory(item.getCategory());
+                aux.setState("0xBD926D");
+                itemService.sendcommand(itemPanel, aux, new VolleyCallBack() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+                });
+            }
+        });
+        video.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final ItemEntity aux=new ItemEntity();
+                aux.setName(item.getName());
+                aux.setType(item.getType());
+                aux.setCategory(item.getCategory());
+                aux.setState("0xBD629D");
+                itemService.sendcommand(itemPanel, aux, new VolleyCallBack() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+                });
+            }
+        });
+        dialogTvControl=builderDialogAddItem.create();
     }
 
     private void populateButtons(){
@@ -295,6 +502,14 @@ public class PanelFragment extends Fragment {
                                                 public void onClick(View view) {
                                                     initDialogControlFoco(getContext(),itemSelected,item);
                                                     dialogControlFoco.show();
+                                                }
+                                            });
+                                        }else if(item.getCategory().equals("TV")){
+                                            itemLogo.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View view) {
+                                                    initDialogTvControl(getContext(),itemSelected,item);
+                                                    dialogTvControl.show();
                                                 }
                                             });
                                         }
